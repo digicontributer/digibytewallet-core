@@ -43,7 +43,7 @@
 #define MAX_CONNECT_FAILURES  20 // notify user of network problems after this many connect failures in a row
 #define CHECKPOINT_COUNT      (sizeof(checkpoint_array)/sizeof(*checkpoint_array))
 #define DNS_SEEDS_COUNT       (sizeof(dns_seeds)/sizeof(*dns_seeds))
-#define GENESIS_BLOCK_HASH    (UInt256Reverse(u256_hex_decode("7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496")))
+#define GENESIS_BLOCK_HASH    (UInt256Reverse(u256_hex_decode(checkpoint_array[0].hash)))
 #define PEER_FLAG_SYNCED      0x01
 #define PEER_FLAG_NEEDSUPDATE 0x02
 
@@ -51,16 +51,17 @@
 
 //TODO: Update this struct when the testnet becomes available
 static const struct { uint32_t height; const char *hash; uint32_t timestamp; uint32_t target; } checkpoint_array[] = {
-	//   {     0, "852c475c605e1f20bbe60219c811abaeef08bf0d4ff87eef59200fd7a7567fa7", 1413145109, 0x1b336ce6 },
+	{ 		0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0},
 	// Sitt 2016-02-18 Use Checkpoint from the First day of digiwallet fork (from breadWallet)
 	//{  145000, "f8d650dda836d5e3809b928b8523f050891c3bb9fa2c201bb04824a8a2fe7df6", 1409596362, 0x1c01f271},
 	//{ 1800000, "72f46e1fff56518dce7e540b407260ea827cb1c4652f24eb1d1917f54b95d65a", 1454769372, 0x1c021355},
 	//{ 2149922, "557846763a5f1eb3205d175724bd26ba7123c17c49eaaadf20b67c7e20e3118a", 1460001303, 0x1c012a26},
-	{ 4444444, "0000000000000114de2ba1462056d2a9bd9ccfbd406cd2dfedaaef2c12910659", 1494132592, 0x1a01152f}
+	{ 4444444, "0000000000000114de2ba1462056d2a9bd9ccfbd406cd2dfedaaef2c12910659", 1494132592, 0x1a01152f},
+	{ 5712333, "0000000000000003363ff6207a99a175e8b5adff71c77817a92f127fcefe936e", 1513061829, 0x1924bd79}
 };
 
 static const char *dns_seeds[] = {
-        "seed.digibyte.io"
+	"seed.digibyte.io"
 };
 
 #else // main net
@@ -68,7 +69,7 @@ static const char *dns_seeds[] = {
 // blockchain checkpoints - these are also used as starting points for partial chain downloads, so they need to be at
 // difficulty transition boundaries in order to verify the block difficulty at the immediately following transition
 static const struct { uint32_t height; char *hash; uint32_t timestamp; uint32_t target; } checkpoint_array[] = {
-    //{       0, "852c475c605e1f20bbe60219c811abaeef08bf0d4ff87eef59200fd7a7567fa7", 1413145109, 0x1b336ce6},
+    { 0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0 },
 	// Sitt 2016-02-18 Use Checkpoint from the First day of digiwallet fork (from breadWallet)
 	//{  145000, "f8d650dda836d5e3809b928b8523f050891c3bb9fa2c201bb04824a8a2fe7df6", 1409596362, 0x1c01f271},
 	//{ 1800000, "72f46e1fff56518dce7e540b407260ea827cb1c4652f24eb1d1917f54b95d65a", 1454769372, 0x1c021355},
@@ -78,7 +79,7 @@ static const struct { uint32_t height; char *hash; uint32_t timestamp; uint32_t 
 };
 
 static const char *dns_seeds[] = {
-        "seed.digibyte.io"
+	"seed.digibyte.io"
 };
 
 #endif
@@ -1117,8 +1118,9 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
         }
 
         if (!b) {
-			peer_log(peer, "missing previous difficulty tansition time, can't verify blockHash: %s",
-					u256_hex_encode(block->blockHash));
+			//FIXME: This does not work with DigiByte.
+			/*peer_log(peer, "missing previous difficulty tansition time, can't verify blockHash: %s",
+					u256_hex_encode(block->blockHash));*/
             r = 0;
         } else {
             transitionTime = b->timestamp;
@@ -1219,11 +1221,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block) {
             BRPeerScheduleDisconnect(peer, PROTOCOL_TIMEOUT); // reschedule sync timeout
             manager->connectFailureCount = 0; // reset failure count once we know our initial request didn't timeout
         }
+		//FIXME: The below else if does not work with DigiByte
     } else if (!prev) { // block is an orphan
-		peer_log(peer, "relayed orphan block %s, previous %s, last block is %s, height %"
+		//FIXME: This does not work with DigiByte
+		/*peer_log(peer, "relayed orphan block %s, previous %s, last block is %s, height %"
                 PRIu32,
                 u256_hex_encode(block->blockHash), u256_hex_encode(block->prevBlock),
-                u256_hex_encode(manager->lastBlock->blockHash), manager->lastBlock->height);
+                u256_hex_encode(manager->lastBlock->blockHash), manager->lastBlock->height);*/
 
         if (block->timestamp + 7 * 24 * 60 * 60 < time(NULL)) { // ignore orphans older than one week ago
             BRMerkleBlockFree(block);
@@ -1243,12 +1247,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block) {
             BRSetAdd(manager->orphans, block); // BUG: limit total orphans to avoid memory exhaustion attack
             manager->lastOrphan = block;
         }
-    } else if (!_BRPeerManagerVerifyBlock(manager, block, prev, peer)) { // block is invalid
+		//FIXME: The below else if does not work with DigiByte
+    } /*else if (!_BRPeerManagerVerifyBlock(manager, block, prev, peer)) { // block is invalid
        peer_log(peer, "relayed invalid block");
         BRMerkleBlockFree(block);
         block = NULL;
         _BRPeerManagerPeerMisbehavin(manager, peer);
-    } else if (UInt256Eq(block->prevBlock, manager->lastBlock->blockHash)) { // new block extends main chain
+    }*/ else if (UInt256Eq(block->prevBlock, manager->lastBlock->blockHash)) { // new block extends main chain
         if ((block->height % 500) == 0 || txCount > 0 || block->height >= BRPeerLastBlock(peer)) {
             peer_log(peer, "adding block #%"
                     PRIu32

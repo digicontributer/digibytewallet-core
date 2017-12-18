@@ -51,12 +51,12 @@
 
 //TODO: Update this struct when the testnet becomes available
 static const struct { uint32_t height; const char *hash; uint32_t timestamp; uint32_t target; } checkpoint_array[] = {
-	{ 		0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0},
+	//{ 		0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0},
 	// Sitt 2016-02-18 Use Checkpoint from the First day of digiwallet fork (from breadWallet)
 	//{  145000, "f8d650dda836d5e3809b928b8523f050891c3bb9fa2c201bb04824a8a2fe7df6", 1409596362, 0x1c01f271},
 	//{ 1800000, "72f46e1fff56518dce7e540b407260ea827cb1c4652f24eb1d1917f54b95d65a", 1454769372, 0x1c021355},
 	//{ 2149922, "557846763a5f1eb3205d175724bd26ba7123c17c49eaaadf20b67c7e20e3118a", 1460001303, 0x1c012a26},
-	{ 4444444, "0000000000000114de2ba1462056d2a9bd9ccfbd406cd2dfedaaef2c12910659", 1494132592, 0x1a01152f},
+	//{ 4444444, "0000000000000114de2ba1462056d2a9bd9ccfbd406cd2dfedaaef2c12910659", 1494132592, 0x1a01152f},
 	{ 5712333, "0000000000000003363ff6207a99a175e8b5adff71c77817a92f127fcefe936e", 1513061829, 0x1924bd79}
 };
 
@@ -69,7 +69,7 @@ static const char *dns_seeds[] = {
 // blockchain checkpoints - these are also used as starting points for partial chain downloads, so they need to be at
 // difficulty transition boundaries in order to verify the block difficulty at the immediately following transition
 static const struct { uint32_t height; char *hash; uint32_t timestamp; uint32_t target; } checkpoint_array[] = {
-    { 0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0 },
+    //{ 0, "7497ea1b465eb39f1c8f507bc877078fe016d6fcb6dfad3a64c98dcc6e1e8496", 1389388394, 0x1e0ffff0 },
 	// Sitt 2016-02-18 Use Checkpoint from the First day of digiwallet fork (from breadWallet)
 	//{  145000, "f8d650dda836d5e3809b928b8523f050891c3bb9fa2c201bb04824a8a2fe7df6", 1409596362, 0x1c01f271},
 	//{ 1800000, "72f46e1fff56518dce7e540b407260ea827cb1c4652f24eb1d1917f54b95d65a", 1454769372, 0x1c021355},

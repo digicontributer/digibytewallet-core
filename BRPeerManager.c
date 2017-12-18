@@ -1118,8 +1118,9 @@ static int _BRPeerManagerVerifyBlock(BRPeerManager *manager, BRMerkleBlock *bloc
         }
 
         if (!b) {
-			peer_log(peer, "missing previous difficulty tansition time, can't verify blockHash: %s",
-					u256_hex_encode(block->blockHash));
+			//FIXME: This does not work with DigiByte.
+			/*peer_log(peer, "missing previous difficulty tansition time, can't verify blockHash: %s",
+					u256_hex_encode(block->blockHash));*/
             r = 0;
         } else {
             transitionTime = b->timestamp;
@@ -1220,11 +1221,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block) {
             BRPeerScheduleDisconnect(peer, PROTOCOL_TIMEOUT); // reschedule sync timeout
             manager->connectFailureCount = 0; // reset failure count once we know our initial request didn't timeout
         }
+		//FIXME: The below else if does not work with DigiByte
     } else if (!prev) { // block is an orphan
-		peer_log(peer, "relayed orphan block %s, previous %s, last block is %s, height %"
+		//FIXME: This does not work with DigiByte
+		/*peer_log(peer, "relayed orphan block %s, previous %s, last block is %s, height %"
                 PRIu32,
                 u256_hex_encode(block->blockHash), u256_hex_encode(block->prevBlock),
-                u256_hex_encode(manager->lastBlock->blockHash), manager->lastBlock->height);
+                u256_hex_encode(manager->lastBlock->blockHash), manager->lastBlock->height);*/
 
         if (block->timestamp + 7 * 24 * 60 * 60 < time(NULL)) { // ignore orphans older than one week ago
             BRMerkleBlockFree(block);
@@ -1244,8 +1247,13 @@ static void _peerRelayedBlock(void *info, BRMerkleBlock *block) {
             BRSetAdd(manager->orphans, block); // BUG: limit total orphans to avoid memory exhaustion attack
             manager->lastOrphan = block;
         }
-		
-        else if (UInt256Eq(block->prevBlock, manager->lastBlock->blockHash)) { // new block extends main chain
+		//FIXME: The below else if does not work with DigiByte
+    } /*else if (!_BRPeerManagerVerifyBlock(manager, block, prev, peer)) { // block is invalid
+       peer_log(peer, "relayed invalid block");
+        BRMerkleBlockFree(block);
+        block = NULL;
+        _BRPeerManagerPeerMisbehavin(manager, peer);
+    }*/ else if (UInt256Eq(block->prevBlock, manager->lastBlock->blockHash)) { // new block extends main chain
         if ((block->height % 500) == 0 || txCount > 0 || block->height >= BRPeerLastBlock(peer)) {
             peer_log(peer, "adding block #%"
                     PRIu32

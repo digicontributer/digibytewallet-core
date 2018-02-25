@@ -3,8 +3,8 @@
  *
  * Originally by Elliot C Back - http://elliottback.com/wp/hashmap-implementation-in-c/
  *
- * Modified by Pete Warden to fix a serious performance problem, support strings as keys
- * and removed thread synchronization - http://petewarden.typepad.com
+ * Modified by Pete Warden to fix a serious performance problem, and removed thread 
+ * synchronization - http://petewarden.typepad.com
  */
 #ifndef __HASHMAP_H__
 #define __HASHMAP_H__

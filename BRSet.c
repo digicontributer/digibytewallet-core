@@ -124,9 +124,10 @@ void BRSetApply(const BRSet *set, void *info, void (*apply)(void *info, void *it
     assert(apply != NULL);
 
     size_t i = 0, size = hashmap_length(set->map);
-
+    void *t;
+    
     while (i < size) {
-        void *t = hashmap_get_index(set->map, i++);
+        t = hashmap_get_index(set->map, i++);
         if (t) apply(info, t);
     }
 }

@@ -219,7 +219,8 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
             if (tx->outputs[j].address[0] != '\0') {
                 BRSetAdd(wallet->usedAddrs, tx->outputs[j].address);
 
-                if (BRSetContains(wallet->allAddrs, tx->outputs[j].address)) {
+                if (BRSetContains(wallet->allAddrs, tx->outputs[j].address) &&
+                    !BROutIsAsset(tx->outputs[j])) {
                     array_add(wallet->utxos, ((BRUTXO) { tx->txHash, (uint32_t)j }));
                     balance += tx->outputs[j].amount;
                 }
@@ -230,8 +231,8 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
         for (j = array_count(wallet->utxos); j > 0; j--) {
             t = BRSetGet(wallet->allTx, &wallet->utxos[j - 1].hash);
             o = t->outputs[wallet->utxos[j - 1].n];
-            if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j - 1]) || BROutIsAsset(o)) {
-                balance -= t->outputs[wallet->utxos[j - 1].n].amount;
+            if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j - 1])) {
+                balance -= o.amount;
                 array_rm(wallet->utxos, j - 1);
             }
         }
@@ -577,13 +578,11 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
     assert(wallet != NULL);
     assert(outputs != NULL && outCount > 0);
 
-
-    if (!BRContainsAsset(outputs, outCount)) {
-        for (i = 0; outputs && i < outCount; i++) {
-            assert(outputs[i].script != NULL && outputs[i].scriptLen > 0);
-            BRTransactionAddOutput(transaction, outputs[i].amount, outputs[i].script, outputs[i].scriptLen);
-            amount += outputs[i].amount;
-        }
+    for (i = 0; outputs && i < outCount; i++) {
+        assert(outputs[i].script != NULL && outputs[i].scriptLen > 0);
+        BRTransactionAddOutput(transaction, outputs[i].amount, outputs[i].script,
+                               outputs[i].scriptLen);
+        amount += outputs[i].amount;
     }
 
     minAmount = BRWalletMinOutputAmount(wallet);
@@ -599,7 +598,7 @@ BRTransaction *BRWalletCreateTxForOutputs(BRWallet *wallet, const BRTxOutput out
         tx = BRSetGet(wallet->allTx, o);
 
         if (! tx || o->n >= tx->outCount) continue;
-        if (BRTXContainsAsset(tx)) continue;
+        if (BROutIsAsset(tx->outputs[o->n])) continue;
         BRTransactionAddInput(transaction, tx->txHash, o->n, tx->outputs[o->n].amount,
                               tx->outputs[o->n].script, tx->outputs[o->n].scriptLen, NULL, 0, NULL, 0, TXIN_SEQUENCE);
         
@@ -1255,13 +1254,14 @@ uint8_t BRGetUTXO(BRWallet *wallet, char **addresses, uint64_t amount)
     size_t j;
     BRTransaction *t;
     BRTxOutput *output;
+    uint64_t utxoAmount;
     for (j = array_count(wallet->utxos); j > 0; j--) {
         if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j - 1])) continue;
         t = BRSetGet(wallet->allTx, &wallet->utxos[j - 1].hash);
         output = &t->outputs[wallet->utxos[j - 1].n];
         if (!BRSetContains(wallet->allAddrs, output->address)) continue;
-        if (BRTXContainsAsset(t)) continue;
-        uint64_t utxoAmount = output->amount;
+        if (BROutIsAsset(*output)) continue;
+        utxoAmount = output->amount;
         if (utxoAmount > 0) {
             array_add(addresses, output->address);
             balance += utxoAmount;

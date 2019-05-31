@@ -219,8 +219,7 @@ static void _BRWalletUpdateBalance(BRWallet *wallet)
             if (tx->outputs[j].address[0] != '\0') {
                 BRSetAdd(wallet->usedAddrs, tx->outputs[j].address);
 
-                if (BRSetContains(wallet->allAddrs, tx->outputs[j].address) &&
-                    !BROutIsAsset(tx->outputs[j])) {
+                if (BRSetContains(wallet->allAddrs, tx->outputs[j].address) && !BROutIsAsset(tx->outputs[j])) {
                     array_add(wallet->utxos, ((BRUTXO) { tx->txHash, (uint32_t)j }));
                     balance += tx->outputs[j].amount;
                 }
@@ -1255,12 +1254,10 @@ uint8_t BRGetUTXO(BRWallet *wallet, char **addresses, uint64_t amount)
     BRTransaction *t;
     BRTxOutput *output;
     uint64_t utxoAmount;
-    for (j = array_count(wallet->utxos); j > 0; j--) {
-        if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j - 1])) continue;
-        t = BRSetGet(wallet->allTx, &wallet->utxos[j - 1].hash);
-        output = &t->outputs[wallet->utxos[j - 1].n];
-        if (!BRSetContains(wallet->allAddrs, output->address)) continue;
-        if (BROutIsAsset(*output)) continue;
+    for (j = 0; j < array_count(wallet->utxos); j++) {
+        if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j])) continue;
+        t = BRSetGet(wallet->allTx, &wallet->utxos[j].hash);
+        output = &t->outputs[wallet->utxos[j].n];
         utxoAmount = output->amount;
         if (utxoAmount > 0) {
             array_add(addresses, output->address);

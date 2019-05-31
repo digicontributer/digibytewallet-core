@@ -235,7 +235,9 @@ int64_t BRLocalAmount(int64_t amount, double price);
 // price is local currency units (i.e. pennies, pence) per bitcoin
 int64_t BRBitcoinAmount(int64_t localAmount, double price);
 
-uint8_t BRGetUTXO(BRWallet *wallet, char **addresses, uint64_t amount);
+BRUTXO * BRGetUTXO(BRWallet *wallet);
+
+BRTransaction * BRGetTxForUTXO(BRWallet *wallet, BRUTXO utxo);
 
 uint8_t BRTXContainsAsset(BRTransaction *tx);
 

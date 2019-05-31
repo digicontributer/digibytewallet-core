@@ -1246,29 +1246,15 @@ void BRFixAssetInputs(BRWallet *wallet, BRTransaction *assetTransaction)
     assetTransaction->inputs = tempInputScripts;
 }
 
-uint8_t BRGetUTXO(BRWallet *wallet, char **addresses, uint64_t amount)
+BRUTXO * BRGetUTXO(BRWallet *wallet)
 {
-    uint64_t balance = 0;
-    uint8_t count = 0;
-    size_t j;
-    BRTransaction *t;
-    BRTxOutput *output;
-    uint64_t utxoAmount;
-    for (j = 0; j < array_count(wallet->utxos); j++) {
-        if (BRSetContains(wallet->spentOutputs, &wallet->utxos[j])) continue;
-        t = BRSetGet(wallet->allTx, &wallet->utxos[j].hash);
-        output = &t->outputs[wallet->utxos[j].n];
-        utxoAmount = output->amount;
-        if (utxoAmount > 0) {
-            array_add(addresses, output->address);
-            balance += utxoAmount;
-            count++;
-        }
-        if (balance >= amount) {
-            break;
-        }
-    }
-    return count;
+    return wallet->utxos;
+}
+
+BRTransaction * BRGetTxForUTXO(BRWallet *wallet, BRUTXO utxo)
+{
+    BRTransaction *t = BRSetGet(wallet->allTx, &utxo.hash);
+    return t;
 }
 
 uint8_t BRTXContainsAsset(BRTransaction *tx)
